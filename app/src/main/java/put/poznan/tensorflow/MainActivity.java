@@ -1,5 +1,6 @@
 package put.poznan.tensorflow;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView;
     private Button buttonClassify, buttonShare;
     private ImageView imageView;
+    private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 101;
 
 
     @Override
@@ -99,14 +101,18 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    //TODO permissions for storage?
-    //intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-    public Uri getImageUri(Context inContext, Bitmap inImage) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
-        return Uri.parse(path);
+    public Uri getImageUri(Context inContext, Bitmap inImage) throws Exception {
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+        } else {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+            String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+            return Uri.parse(path);
+        }
+        throw new Exception("Couldn't share");
     }
 
     void shareIt(Bitmap bitmap, String string) {
@@ -118,7 +124,8 @@ public class MainActivity extends AppCompatActivity {
             iShare.putExtra(Intent.EXTRA_STREAM, uri);
             startActivity(Intent.createChooser(iShare, "Choose app to share photo with"));
         } catch (Exception e) {
-            Toast.makeText(this, "There is nothing to share", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Couldn't share the result", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
     }
 
