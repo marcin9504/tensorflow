@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private Classifier classifier;
     private Executor executor = Executors.newSingleThreadExecutor();
     private TextView textView;
-    private Button buttonClassify, buttonShare;
+    private Button buttonClassify, buttonShare, buttonGallery;
     private ImageView imageView;
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 101;
 
@@ -70,6 +70,15 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(cameraIntent, CAMERA_REQUEST);
 //                    }
 
+            }
+        });
+
+        buttonGallery = findViewById(R.id.buttonGallery);
+        buttonGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, GalleryActivity.class);
+                startActivity(intent);
             }
         });
 
