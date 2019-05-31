@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by SHAJIB on 7/16/2017.
@@ -81,24 +82,18 @@ public class AlbumActivity extends AppCompatActivity {
             String path = null;
             String album = null;
             String timestamp = null;
-            Uri uriExternal = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-            Uri uriInternal = android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI;
 
-            String[] projection = { MediaStore.MediaColumns.DATA,
-                    MediaStore.Images.Media.BUCKET_DISPLAY_NAME, MediaStore.MediaColumns.DATE_MODIFIED };
+            List<ClassifiedImage> classCounts = AppDatabase.getDatabase(getApplicationContext()).classifiedImageDao().getAllForClassName(album_name);
 
-            Cursor cursorExternal = getContentResolver().query(uriExternal, projection, "bucket_display_name = \""+album_name+"\"", null, null);
-            Cursor cursorInternal = getContentResolver().query(uriInternal, projection, "bucket_display_name = \""+album_name+"\"", null, null);
-            Cursor cursor = new MergeCursor(new Cursor[]{cursorExternal,cursorInternal});
-            while (cursor.moveToNext()) {
+            for (ClassifiedImage c: classCounts) {
+                path = c.dataPath;
+                album = c.className;
+                timestamp = c.modifiedDate.toString();
 
-                path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
-                album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
-                timestamp = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED));
-
-                imageList.add(Function.mappingInbox(album, path, timestamp, Function.converToTime(timestamp), null));
+                imageList.add(Function.mappingInbox(album, path, timestamp, timestamp, null));
             }
-            cursor.close();
+
+
             Collections.sort(imageList, new MapComparator(Function.KEY_TIMESTAMP, "dsc")); // Arranging photo album by timestamp decending
             return xml;
         }

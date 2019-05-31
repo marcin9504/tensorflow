@@ -24,12 +24,22 @@ class MapComparator implements Comparator<HashMap<String, String>>
         // TODO: Null checking, both for maps and values
         String firstValue = first.get(key);
         String secondValue = second.get(key);
-        if(this.order.toLowerCase().contentEquals("asc"))
-        {
-            return firstValue.compareTo(secondValue);
-        }else{
-            return secondValue.compareTo(firstValue);
+        if (key.equals(Function.KEY_COUNT) || key.equals(Function.KEY_TIMESTAMP)) {
+            if(this.order.toLowerCase().contentEquals("asc"))
+            {
+                return Integer.parseInt(firstValue) - Integer.parseInt(secondValue);
+            }else{
+                return Integer.parseInt(secondValue) - Integer.parseInt(firstValue);
+            }
         }
+        else {
+            if(this.order.toLowerCase().contentEquals("asc"))
+            {
+                return firstValue.compareTo(secondValue);
+            }else{
+                return secondValue.compareTo(firstValue);
+            }
 
+        }
     }
 }

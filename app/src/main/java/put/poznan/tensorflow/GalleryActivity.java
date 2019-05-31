@@ -30,6 +30,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+
 
 public class GalleryActivity extends AppCompatActivity {
     static final int REQUEST_PERMISSION_KEY = 1;
@@ -74,31 +76,19 @@ public class GalleryActivity extends AppCompatActivity {
 
             String path = null;
             String album = null;
-            String timestamp = null;
             String countPhoto = null;
-            Uri uriExternal = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-            Uri uriInternal = android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI;
 
+            List<ClassifiedImageDao.ClassCount> classCounts = AppDatabase.getDatabase(getApplicationContext()).classifiedImageDao().getClassCounts();
 
-            String[] projection = { MediaStore.MediaColumns.DATA,
-                    MediaStore.Images.Media.BUCKET_DISPLAY_NAME, MediaStore.MediaColumns.DATE_MODIFIED };
-            Cursor cursorExternal = getContentResolver().query(uriExternal, projection, "_data IS NOT NULL) GROUP BY (bucket_display_name",
-                    null, null);
-            Cursor cursorInternal = getContentResolver().query(uriInternal, projection, "_data IS NOT NULL) GROUP BY (bucket_display_name",
-                    null, null);
-            Cursor cursor = new MergeCursor(new Cursor[]{cursorExternal,cursorInternal});
+            for (ClassifiedImageDao.ClassCount c: classCounts) {
+                path = c.dataPath;
+                album = c.className;
+                countPhoto = c.countClassItems.toString();
 
-            while (cursor.moveToNext()) {
-
-                path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
-                album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
-                timestamp = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED));
-                countPhoto = Function.getCount(getApplicationContext(), album);
-
-                albumList.add(Function.mappingInbox(album, path, timestamp, Function.converToTime(timestamp), countPhoto));
+                albumList.add(Function.mappingInbox(album, path, null, null, countPhoto));
             }
-            cursor.close();
-            Collections.sort(albumList, new MapComparator(Function.KEY_TIMESTAMP, "dsc")); // Arranging photo album by timestamp decending
+
+            Collections.sort(albumList, new MapComparator(Function.KEY_COUNT, "dsc")); // Arranging photo album by photos inside decending
             return xml;
         }
 

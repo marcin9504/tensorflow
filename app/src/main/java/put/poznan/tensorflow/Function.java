@@ -26,7 +26,7 @@ public class Function {
     static final String KEY_PATH = "path";
     static final String KEY_TIMESTAMP = "timestamp";
     static final String KEY_TIME = "date";
-    static final String KEY_COUNT = "date";
+    static final String KEY_COUNT = "count";
 
 
     public static  boolean hasPermissions(Context context, String... permissions) {

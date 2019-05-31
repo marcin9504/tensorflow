@@ -5,13 +5,19 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.MergeCursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -19,6 +25,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -32,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int CAMERA_REQUEST = 1888;
     private static final int MY_CAMERA_PERMISSION_CODE = 100;
+    private static final int EXTERNAL_STORAGE_PERMISSION_CODE = 1;
 
     private Classifier classifier;
     private Executor executor = Executors.newSingleThreadExecutor();
@@ -83,6 +93,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         initTensorFlowAndLoadModel();
+
+        String[] PERMISSIONS = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+        if(!Function.hasPermissions(this, PERMISSIONS)){
+            ActivityCompat.requestPermissions(this, PERMISSIONS, EXTERNAL_STORAGE_PERMISSION_CODE);
+        }else{
+            classifyImages();
+        }
     }
 
     @Override
@@ -151,17 +168,91 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Camera permission denied", Toast.LENGTH_LONG).show();
             }
+        } else if (requestCode == EXTERNAL_STORAGE_PERMISSION_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                classifyImages();
+            } else {
+                Toast.makeText(this, "External storage permission denied", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-//            Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, false);
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, false);
             imageView.setImageBitmap(bitmap);
-            final List<Classifier.Recognition> results = classifier.recognizeImage(bitmap);
+            final List<Classifier.Recognition> results = classifier.recognizeImage(scaledBitmap);
             textView.setText(results.toString());
             buttonShare.setVisibility(View.VISIBLE);
         }
+    }
+
+    public void classifyImages() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<ClassifiedImage> allImages = AppDatabase.getDatabase(MainActivity.this.getApplicationContext()).classifiedImageDao().getAllFirstClasses();
+
+                String path = null;
+                Integer timestamp = null;
+                Uri uriExternal = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                Uri uriInternal = MediaStore.Images.Media.INTERNAL_CONTENT_URI;
+
+                String[] projection = {MediaStore.MediaColumns.DATA, MediaStore.MediaColumns.DATE_MODIFIED};
+
+                Cursor cursorExternal = MainActivity.this.getContentResolver().query(uriExternal, projection, "_data IS NOT NULL", null, null);
+                Cursor cursorInternal = MainActivity.this.getContentResolver().query(uriInternal, projection, "_data IS NOT NULL", null, null);
+                Cursor cursor = new MergeCursor(new Cursor[]{cursorExternal, cursorInternal});
+                while (cursor.moveToNext()) {
+                    try {
+                        path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
+                        timestamp = Integer.parseInt(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)));
+
+                        if (findItem(path, timestamp, allImages)) {
+                            continue;
+                        }
+
+                        Log.d(path, timestamp.toString());
+                        Bitmap bitmap = getBitmapFromFilePath(path);
+                        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, false);
+                        List<Classifier.Recognition> results = classifier.recognizeImage(scaledBitmap);
+
+                        List<ClassifiedImage> classifiedImages = new ArrayList<ClassifiedImage>();
+
+                        int counter = 1;
+                        for (Classifier.Recognition cr : results) {
+                            ClassifiedImage classifiedImage = new ClassifiedImage();
+                            classifiedImage.dataPath = path;
+                            classifiedImage.className = cr.getTitle();
+                            classifiedImage.fitnessPercent = cr.getConfidence();
+                            classifiedImage.modifiedDate = timestamp;
+                            classifiedImage.rankingPosition = counter;
+                            counter++;
+
+                            classifiedImages.add(classifiedImage);
+                        }
+                        AppDatabase.getDatabase(MainActivity.this.getApplicationContext()).classifiedImageDao().insertList(classifiedImages);
+                    } catch (Exception e) {
+                        Log.d("EXCEPTION", e.getLocalizedMessage());
+                    }
+                }
+                cursor.close();
+
+            }
+        }).start();
+    }
+
+    private Boolean findItem(String path, Integer timestamp, List<ClassifiedImage> images) {
+        for(ClassifiedImage img: images) {
+            if(path.equals(img.dataPath) && timestamp.equals(img.modifiedDate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Bitmap getBitmapFromFilePath(String filePath) {
+        return BitmapFactory.decodeFile(filePath);
     }
 }
