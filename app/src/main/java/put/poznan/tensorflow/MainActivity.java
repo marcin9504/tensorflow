@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private Classifier classifier;
     private Executor executor = Executors.newSingleThreadExecutor();
     private TextView textView;
-    private Button buttonClassify, buttonShare;
+    private Button buttonShare;
     private ImageView imageView;
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 101;
 
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        buttonClassify = findViewById(R.id.buttonClassify);
+        Button buttonClassify = findViewById(R.id.buttonClassify);
         buttonClassify.setVisibility(View.VISIBLE);
         buttonClassify.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Camera permission granted", Toast.LENGTH_LONG).show();
                 Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                //TODO fix autosave photo
                 startActivityForResult(cameraIntent, CAMERA_REQUEST);
             } else {
                 Toast.makeText(this, "Camera permission denied", Toast.LENGTH_LONG).show();
@@ -145,10 +147,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //intent.setFlags (Intent.FLAG_GRANT_URI_READ_PERMISSION | Intent.FLAG_GRANT_URI_WRITE_PERMISDION);
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        System.out.println("requestCode");
+        System.out.println(requestCode);
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-            Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, false);
+            Bitmap bitmap = (Bitmap) Objects.requireNonNull(data.getExtras()).get("data");
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(Objects.requireNonNull(bitmap), INPUT_SIZE, INPUT_SIZE, false);
             imageView.setImageBitmap(bitmap);
             final List<Classifier.Recognition> results = classifier.recognizeImage(scaledBitmap);
             textView.setText(results.toString());
