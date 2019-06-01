@@ -153,9 +153,8 @@ public class MainActivity extends AppCompatActivity {
         System.out.println(requestCode);
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             Bitmap bitmap = (Bitmap) Objects.requireNonNull(data.getExtras()).get("data");
-            Bitmap scaledBitmap = Bitmap.createScaledBitmap(Objects.requireNonNull(bitmap), INPUT_SIZE, INPUT_SIZE, false);
             imageView.setImageBitmap(bitmap);
-            final List<Classifier.Recognition> results = classifier.recognizeImage(scaledBitmap);
+            final List<Classifier.Recognition> results = classifier.recognizeImage(bitmap);
             textView.setText(results.toString());
             buttonShare.setVisibility(View.VISIBLE);
         }

@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import java.util.List;
-import java.util.Objects;
 
 abstract class ReceiverActivity extends AppCompatActivity {
 
@@ -24,9 +23,8 @@ abstract class ReceiverActivity extends AppCompatActivity {
 
     void classify() {
         try {
-            Bitmap scaledBitmap = Bitmap.createScaledBitmap(Objects.requireNonNull(this.bitmap), INPUT_SIZE, INPUT_SIZE, false);
             Classifier classifier = TFClassifier.create(getAssets(), MODEL_PATH, LABEL_PATH, INPUT_SIZE, QUANT);
-            final List<Classifier.Recognition> results = classifier.recognizeImage(scaledBitmap);
+            final List<Classifier.Recognition> results = classifier.recognizeImage(this.bitmap);
             classifier.close();
             String result = results.toString();
             Intent rIntent = new Intent();

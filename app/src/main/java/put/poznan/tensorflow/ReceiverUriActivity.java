@@ -15,7 +15,6 @@ public class ReceiverUriActivity extends ReceiverActivity {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
         Uri uri = (Uri) Objects.requireNonNull(intent.getExtras()).get("data");
-        System.out.println(uri.toString());
         try {
             this.bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
         } catch (IOException e) {
