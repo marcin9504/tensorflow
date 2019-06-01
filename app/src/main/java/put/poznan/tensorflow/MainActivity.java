@@ -46,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
     private Executor executor = Executors.newSingleThreadExecutor();
     private TextView textView;
     private Button buttonShare;
-    private Button buttonGallery;
     private ImageView imageView;
 
 
@@ -71,32 +70,31 @@ public class MainActivity extends AppCompatActivity {
         buttonClassify.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isStoragePermissionGranted()){
-                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(cameraIntent, CAMERA_REQUEST);
-                    }
-                else{
+                if (isStoragePermissionGranted()) {
+                    classifyImages();
+                    Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(cameraIntent, CAMERA_REQUEST);
+                } else {
                     Toast.makeText(getApplicationContext(), "Permission not granted", Toast.LENGTH_LONG).show();
                 }
 
             }
         });
 
-        buttonGallery = findViewById(R.id.buttonGallery);
+        Button buttonGallery = findViewById(R.id.buttonGallery);
         buttonGallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, GalleryActivity.class);
-                startActivity(intent);
+                if (isStoragePermissionGranted()) {
+                    Intent intent = new Intent(MainActivity.this, GalleryActivity.class);
+                    startActivity(intent);
+                }
             }
         });
 
         initTensorFlowAndLoadModel();
 
-        String[] PERMISSIONS = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
-        if(!Function.hasPermissions(this, PERMISSIONS)){
-            ActivityCompat.requestPermissions(this, PERMISSIONS, EXTERNAL_STORAGE_PERMISSION_CODE);
-        }else{
+        if (isStoragePermissionGranted()) {
             classifyImages();
         }
     }
@@ -193,14 +191,13 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("requestCode");
         System.out.println(requestCode);
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            if(isStoragePermissionGranted()) {
+            if (isStoragePermissionGranted()) {
                 Bitmap bitmap = (Bitmap) Objects.requireNonNull(data.getExtras()).get("data");
                 imageView.setImageBitmap(bitmap);
                 final List<Classifier.Recognition> results = classifier.recognizeImage(bitmap);
                 textView.setText(results.toString());
                 buttonShare.setVisibility(View.VISIBLE);
-            }
-            else{
+            } else {
                 Toast.makeText(this, "Couldn't get an image", Toast.LENGTH_LONG).show();
             }
         }
@@ -212,8 +209,8 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 List<ClassifiedImage> allImages = AppDatabase.getDatabase(MainActivity.this.getApplicationContext()).classifiedImageDao().getAllFirstClasses();
 
-                String path = null;
-                Integer timestamp = null;
+                String path;
+                Integer timestamp;
                 Uri uriExternal = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
                 Uri uriInternal = MediaStore.Images.Media.INTERNAL_CONTENT_URI;
 
@@ -235,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
                         Bitmap bitmap = getBitmapFromFilePath(path);
                         List<Classifier.Recognition> results = classifier.recognizeImage(bitmap);
 
-                        List<ClassifiedImage> classifiedImages = new ArrayList<ClassifiedImage>();
+                        List<ClassifiedImage> classifiedImages = new ArrayList<>();
 
                         int counter = 1;
                         for (Classifier.Recognition cr : results) {
@@ -250,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
                             classifiedImages.add(classifiedImage);
                         }
                         AppDatabase.getDatabase(MainActivity.this.getApplicationContext()).classifiedImageDao().insertList(classifiedImages);
-                    } catch (Exception e) {
+                    } catch (Exception ignored) {
                     }
                 }
                 cursor.close();
@@ -260,8 +257,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Boolean findItem(String path, Integer timestamp, List<ClassifiedImage> images) {
-        for(ClassifiedImage img: images) {
-            if(path.equals(img.dataPath) && timestamp.equals(img.modifiedDate)) {
+        for (ClassifiedImage img : images) {
+            if (path.equals(img.dataPath) && timestamp.equals(img.modifiedDate)) {
                 return true;
             }
         }
