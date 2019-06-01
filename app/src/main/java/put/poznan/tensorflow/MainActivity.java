@@ -251,7 +251,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                         AppDatabase.getDatabase(MainActivity.this.getApplicationContext()).classifiedImageDao().insertList(classifiedImages);
                     } catch (Exception e) {
-                        Log.d("EXCEPTION", e.getLocalizedMessage());
                     }
                 }
                 cursor.close();
