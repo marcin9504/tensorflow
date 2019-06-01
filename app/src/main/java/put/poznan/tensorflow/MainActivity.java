@@ -8,9 +8,11 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -39,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView;
     private Button buttonShare;
     private ImageView imageView;
-    private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 101;
 
 
     @Override
@@ -63,13 +64,13 @@ public class MainActivity extends AppCompatActivity {
         buttonClassify.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO check permission
-//                    if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-//                        requestPermissions(new String[]{Manifest.permission.CAMERA}, MY_CAMERA_PERMISSION_CODE);
-//                    } else {
+                if(isStoragePermissionGranted()){
                 Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(cameraIntent, CAMERA_REQUEST);
-//                    }
+                    }
+                else{
+                    Toast.makeText(getApplicationContext(), "Permission not granted", Toast.LENGTH_LONG).show();
+                }
 
             }
         });
@@ -102,18 +103,31 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public boolean isStoragePermissionGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                return true;
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        1);
+                return false;
+            }
+        } else { //permission is automatically granted on sdk<23 upon installation
+            return true;
+        }
+    }
+
     public Uri getImageUri(Context inContext, Bitmap inImage) throws Exception {
-        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-        } else {
+        if (isStoragePermissionGranted()) {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
             String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
             return Uri.parse(path);
+        } else {
+            throw new Exception("Couldn't share");
         }
-        throw new Exception("Couldn't share");
     }
 
     void shareIt(Bitmap bitmap, String string) {
@@ -147,16 +161,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //intent.setFlags (Intent.FLAG_GRANT_URI_READ_PERMISSION | Intent.FLAG_GRANT_URI_WRITE_PERMISDION);
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         System.out.println("requestCode");
         System.out.println(requestCode);
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            Bitmap bitmap = (Bitmap) Objects.requireNonNull(data.getExtras()).get("data");
-            imageView.setImageBitmap(bitmap);
-            final List<Classifier.Recognition> results = classifier.recognizeImage(bitmap);
-            textView.setText(results.toString());
-            buttonShare.setVisibility(View.VISIBLE);
+            if(isStoragePermissionGranted()) {
+                Bitmap bitmap = (Bitmap) Objects.requireNonNull(data.getExtras()).get("data");
+                imageView.setImageBitmap(bitmap);
+                final List<Classifier.Recognition> results = classifier.recognizeImage(bitmap);
+                textView.setText(results.toString());
+                buttonShare.setVisibility(View.VISIBLE);
+            }
+            else{
+                Toast.makeText(this, "Couldn't get an image", Toast.LENGTH_LONG).show();
+            }
         }
     }
 }
