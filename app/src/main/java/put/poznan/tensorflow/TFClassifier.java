@@ -18,6 +18,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.PriorityQueue;
 
 public class TFClassifier implements Classifier {
@@ -26,6 +27,7 @@ public class TFClassifier implements Classifier {
     private static final int BATCH_SIZE = 1;
     private static final int PIXEL_SIZE = 3;
     private static final float THRESHOLD = 0.1f;
+    private static final int INPUT_SIZE = 224;
 
     private static final int IMAGE_MEAN = 128;
     private static final float IMAGE_STD = 128.0f;
@@ -56,7 +58,8 @@ public class TFClassifier implements Classifier {
 
     @Override
     public List<Recognition> recognizeImage(Bitmap bitmap) {
-        ByteBuffer byteBuffer = convertBitmapToByteBuffer(bitmap);
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(Objects.requireNonNull(bitmap), INPUT_SIZE, INPUT_SIZE, false);
+        ByteBuffer byteBuffer = convertBitmapToByteBuffer(scaledBitmap);
         if(quant){
             byte[][] result = new byte[1][labelList.size()];
             interpreter.run(byteBuffer, result);

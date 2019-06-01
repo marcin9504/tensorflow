@@ -11,8 +11,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -25,10 +25,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -46,9 +45,9 @@ public class MainActivity extends AppCompatActivity {
     private Classifier classifier;
     private Executor executor = Executors.newSingleThreadExecutor();
     private TextView textView;
-    private Button buttonClassify, buttonShare, buttonGallery;
+    private Button buttonShare;
+    private Button buttonGallery;
     private ImageView imageView;
-    private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 101;
 
 
     @Override
@@ -67,18 +66,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        buttonClassify = findViewById(R.id.buttonClassify);
+        Button buttonClassify = findViewById(R.id.buttonClassify);
         buttonClassify.setVisibility(View.VISIBLE);
         buttonClassify.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO check permission
-//                    if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-//                        requestPermissions(new String[]{Manifest.permission.CAMERA}, MY_CAMERA_PERMISSION_CODE);
-//                    } else {
+                if(isStoragePermissionGranted()){
                 Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(cameraIntent, CAMERA_REQUEST);
-//                    }
+                    }
+                else{
+                    Toast.makeText(getApplicationContext(), "Permission not granted", Toast.LENGTH_LONG).show();
+                }
 
             }
         });
@@ -127,18 +126,31 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public boolean isStoragePermissionGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                return true;
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        1);
+                return false;
+            }
+        } else { //permission is automatically granted on sdk<23 upon installation
+            return true;
+        }
+    }
+
     public Uri getImageUri(Context inContext, Bitmap inImage) throws Exception {
-        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-        } else {
+        if (isStoragePermissionGranted()) {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
             String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
             return Uri.parse(path);
+        } else {
+            throw new Exception("Couldn't share");
         }
-        throw new Exception("Couldn't share");
     }
 
     void shareIt(Bitmap bitmap, String string) {
@@ -178,13 +190,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        System.out.println("requestCode");
+        System.out.println(requestCode);
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-            Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, false);
-            imageView.setImageBitmap(bitmap);
-            final List<Classifier.Recognition> results = classifier.recognizeImage(scaledBitmap);
-            textView.setText(results.toString());
-            buttonShare.setVisibility(View.VISIBLE);
+            if(isStoragePermissionGranted()) {
+                Bitmap bitmap = (Bitmap) Objects.requireNonNull(data.getExtras()).get("data");
+                imageView.setImageBitmap(bitmap);
+                final List<Classifier.Recognition> results = classifier.recognizeImage(bitmap);
+                textView.setText(results.toString());
+                buttonShare.setVisibility(View.VISIBLE);
+            }
+            else{
+                Toast.makeText(this, "Couldn't get an image", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -215,8 +233,7 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.d(path, timestamp.toString());
                         Bitmap bitmap = getBitmapFromFilePath(path);
-                        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, false);
-                        List<Classifier.Recognition> results = classifier.recognizeImage(scaledBitmap);
+                        List<Classifier.Recognition> results = classifier.recognizeImage(bitmap);
 
                         List<ClassifiedImage> classifiedImages = new ArrayList<ClassifiedImage>();
 
