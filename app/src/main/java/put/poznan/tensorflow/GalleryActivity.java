@@ -85,7 +85,7 @@ public class GalleryActivity extends AppCompatActivity {
                 album = c.className;
                 countPhoto = c.countClassItems.toString();
 
-                albumList.add(Function.mappingInbox(album, path, null, null, countPhoto));
+                albumList.add(Function.mappingInbox(album, path, null, null, countPhoto, null));
             }
 
             Collections.sort(albumList, new MapComparator(Function.KEY_COUNT, "dsc")); // Arranging photo album by photos inside decending

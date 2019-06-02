@@ -82,6 +82,7 @@ public class AlbumActivity extends AppCompatActivity {
             String path = null;
             String album = null;
             String timestamp = null;
+            String fitness = null;
 
             List<ClassifiedImage> classCounts = AppDatabase.getDatabase(getApplicationContext()).classifiedImageDao().getAllForClassName(album_name);
 
@@ -89,8 +90,9 @@ public class AlbumActivity extends AppCompatActivity {
                 path = c.dataPath;
                 album = c.className;
                 timestamp = c.modifiedDate.toString();
+                fitness = c.fitnessPercent.toString();
 
-                imageList.add(Function.mappingInbox(album, path, timestamp, timestamp, null));
+                imageList.add(Function.mappingInbox(album, path, timestamp, timestamp, null, fitness));
             }
 
 

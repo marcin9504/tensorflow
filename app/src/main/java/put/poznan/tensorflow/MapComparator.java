@@ -32,6 +32,14 @@ class MapComparator implements Comparator<HashMap<String, String>>
                 return Integer.parseInt(secondValue) - Integer.parseInt(firstValue);
             }
         }
+        else if (key.equals(Function.KEY_FITNESS)) {
+            if(this.order.toLowerCase().contentEquals("asc"))
+            {
+                return Math.round(Float.parseFloat(firstValue) * 1000 - Float.parseFloat(secondValue) * 1000);
+            }else{
+                return Math.round(Float.parseFloat(secondValue) * 1000 - Float.parseFloat(firstValue) * 1000);
+            }
+        }
         else {
             if(this.order.toLowerCase().contentEquals("asc"))
             {

@@ -27,6 +27,7 @@ public class Function {
     static final String KEY_TIMESTAMP = "timestamp";
     static final String KEY_TIME = "date";
     static final String KEY_COUNT = "count";
+    static final String KEY_FITNESS = "fitness";
 
 
     public static  boolean hasPermissions(Context context, String... permissions) {
@@ -41,7 +42,7 @@ public class Function {
     }
 
 
-    public static HashMap<String, String> mappingInbox(String album, String path, String timestamp, String time, String count)
+    public static HashMap<String, String> mappingInbox(String album, String path, String timestamp, String time, String count, String fitness)
     {
         HashMap<String, String> map = new HashMap<String, String>();
         map.put(KEY_ALBUM, album);
@@ -49,6 +50,7 @@ public class Function {
         map.put(KEY_TIMESTAMP, timestamp);
         map.put(KEY_TIME, time);
         map.put(KEY_COUNT, count);
+        map.put(KEY_FITNESS, fitness);
         return map;
     }
 
