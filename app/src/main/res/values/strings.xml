@@ -2,5 +2,5 @@
     <string name="app_name">Tensorflow</string>
     <string name="share">Share result</string>
     <string name="gallery">Gallery</string>
-    <string name="classify">Classify</string>
+    <string name="classify">Classify a photo</string>
 </resources>

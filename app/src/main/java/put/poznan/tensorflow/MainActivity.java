@@ -34,15 +34,13 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
 
     private static final String MODEL_PATH = "mobilenet_quant_v1_224.tflite";
-    private static final boolean QUANT = true;
     private static final String LABEL_PATH = "labels.txt";
-    private static final int INPUT_SIZE = 224;
 
     private static final int CAMERA_REQUEST = 1888;
     private static final int MY_CAMERA_PERMISSION_CODE = 100;
     private static final int EXTERNAL_STORAGE_PERMISSION_CODE = 1;
 
-    private Classifier classifier;
+    private TFClassifier classifier;
     private Executor executor = Executors.newSingleThreadExecutor();
     private TextView textView;
     private Button buttonShare;
@@ -114,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    classifier = TFClassifier.create(getAssets(), MODEL_PATH, LABEL_PATH, INPUT_SIZE, QUANT);
+                    classifier = TFClassifier.create(getAssets(), MODEL_PATH, LABEL_PATH);
 
                 } catch (final Exception e) {
                     throw new RuntimeException("Error initializing TensorFlow!", e);
@@ -187,13 +185,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        System.out.println("requestCode");
-        System.out.println(requestCode);
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             if (isStoragePermissionGranted()) {
                 Bitmap bitmap = (Bitmap) Objects.requireNonNull(data.getExtras()).get("data");
                 imageView.setImageBitmap(bitmap);
-                final List<Classifier.Recognition> results = classifier.recognizeImage(bitmap);
+                final List<TFClassifier.Recognition> results = classifier.recognizeImage(bitmap);
                 textView.setText(results.toString());
                 buttonShare.setVisibility(View.VISIBLE);
             } else {
@@ -229,12 +225,12 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.d(path, timestamp.toString());
                         Bitmap bitmap = getBitmapFromFilePath(path);
-                        List<Classifier.Recognition> results = classifier.recognizeImage(bitmap);
+                        List<TFClassifier.Recognition> results = classifier.recognizeImage(bitmap);
 
                         List<ClassifiedImage> classifiedImages = new ArrayList<>();
 
                         int counter = 1;
-                        for (Classifier.Recognition cr : results) {
+                        for (TFClassifier.Recognition cr : results) {
                             ClassifiedImage classifiedImage = new ClassifiedImage();
                             classifiedImage.dataPath = path;
                             classifiedImage.className = cr.getTitle();

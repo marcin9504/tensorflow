@@ -17,9 +17,7 @@ abstract class ReceiverActivity extends AppCompatActivity {
 
     Bitmap bitmap;
     final String MODEL_PATH = "mobilenet_quant_v1_224.tflite";
-    final boolean QUANT = true;
     final String LABEL_PATH = "labels.txt";
-    final int INPUT_SIZE = 224;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,8 +27,8 @@ abstract class ReceiverActivity extends AppCompatActivity {
     void classify() {
         try {
             if(isStoragePermissionGranted()) {
-                Classifier classifier = TFClassifier.create(getAssets(), MODEL_PATH, LABEL_PATH, INPUT_SIZE, QUANT);
-                final List<Classifier.Recognition> results = classifier.recognizeImage(this.bitmap);
+                TFClassifier classifier = TFClassifier.create(getAssets(), MODEL_PATH, LABEL_PATH);
+                final List<TFClassifier.Recognition> results = classifier.recognizeImage(this.bitmap);
                 classifier.close();
                 String result = results.toString();
                 Intent rIntent = new Intent();
