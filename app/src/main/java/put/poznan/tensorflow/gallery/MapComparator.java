@@ -1,4 +1,4 @@
-package put.poznan.tensorflow;
+package put.poznan.tensorflow.gallery;
 
 import java.util.Comparator;
 import java.util.HashMap;

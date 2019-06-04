@@ -1,4 +1,4 @@
-package put.poznan.tensorflow;
+package put.poznan.tensorflow.service;
 
 import android.content.Intent;
 import android.net.Uri;

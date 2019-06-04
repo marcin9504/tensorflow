@@ -1,4 +1,4 @@
-package put.poznan.tensorflow;
+package put.poznan.tensorflow.classifier;
 
 import android.annotation.SuppressLint;
 import android.content.res.AssetFileDescriptor;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.PriorityQueue;
 
-class TFClassifier {
+public class TFClassifier {
     private static final int MAX_RESULTS = 3;
     private static final int BATCH_SIZE = 1;
     private static final int PIXEL_SIZE = 3;
@@ -31,15 +31,15 @@ class TFClassifier {
     private Interpreter interpreter;
     private List<String> labelList;
 
-    static TFClassifier create(AssetManager assetManager, String modelPath,
-                               String labelPath) throws IOException {
+    public static TFClassifier create(AssetManager assetManager, String modelPath,
+                                      String labelPath) throws IOException {
         TFClassifier classifier = new TFClassifier();
         classifier.interpreter = new Interpreter(classifier.loadModelFile(assetManager, modelPath), new Interpreter.Options());
         classifier.labelList = classifier.loadLabelList(assetManager, labelPath);
         return classifier;
     }
 
-    List<Recognition> recognizeImage(Bitmap bitmap) {
+    public List<Recognition> recognizeImage(Bitmap bitmap) {
         Bitmap scaledBitmap = Bitmap.createScaledBitmap(Objects.requireNonNull(bitmap), INPUT_SIZE, INPUT_SIZE, false);
         ByteBuffer byteBuffer = convertBitmapToByteBuffer(scaledBitmap);
         byte[][] result = new byte[1][labelList.size()];
@@ -47,7 +47,7 @@ class TFClassifier {
         return getSortedResultByte(result);
     }
 
-    void close() {
+    public void close() {
         interpreter.close();
         interpreter = null;
     }
@@ -113,7 +113,7 @@ class TFClassifier {
         return recognitions;
     }
 
-    class Recognition {
+    public class Recognition {
         private final String title;
         private final Float confidence;
 
@@ -122,11 +122,11 @@ class TFClassifier {
             this.confidence = confidence;
         }
 
-        String getTitle() {
+        public String getTitle() {
             return title;
         }
 
-        Float getConfidence() {
+        public Float getConfidence() {
             return confidence;
         }
 

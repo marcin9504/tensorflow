@@ -32,6 +32,11 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import put.poznan.tensorflow.classifier.TFClassifier;
+import put.poznan.tensorflow.gallery.AppDatabase;
+import put.poznan.tensorflow.gallery.ClassifiedImage;
+import put.poznan.tensorflow.gallery.GalleryActivity;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String MODEL_PATH = "mobilenet_quant_v1_224.tflite";

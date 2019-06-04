@@ -1,4 +1,4 @@
-package put.poznan.tensorflow;
+package put.poznan.tensorflow.gallery;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +8,8 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
+
+import put.poznan.tensorflow.R;
 
 /**
  * Created by SHAJIB on 25/12/2015.

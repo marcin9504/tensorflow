@@ -1,4 +1,4 @@
-package put.poznan.tensorflow;
+package put.poznan.tensorflow.gallery;
 
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;

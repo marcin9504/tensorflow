@@ -27,15 +27,15 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".GalleryActivity"
+        <activity android:name=".gallery.GalleryActivity"
             android:configChanges="orientation|screenSize"/>
 
-        <activity android:name=".AlbumActivity"
+        <activity android:name=".gallery.AlbumActivity"
             android:configChanges="orientation|screenSize"/>
 
-        <activity android:name=".GalleryPreview"
+        <activity android:name=".gallery.GalleryPreview"
             android:configChanges="orientation|screenSize"/>
-        <activity android:name=".ReceiverUriActivity">
+        <activity android:name=".service.ReceiverUriActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
@@ -43,7 +43,7 @@
                 <data android:mimeType="text/uri" />
             </intent-filter>
         </activity>
-        <activity android:name=".ReceiverURLActivity">
+        <activity android:name=".service.ReceiverURLActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
@@ -51,7 +51,7 @@
                 <data android:mimeType="text/uri-list" />
             </intent-filter>
         </activity>
-        <activity android:name=".ReceiverBitmapActivity">
+        <activity android:name=".service.ReceiverBitmapActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 

@@ -1,14 +1,10 @@
-package put.poznan.tensorflow;
+package put.poznan.tensorflow.gallery;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.database.Cursor;
-import android.database.MergeCursor;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -26,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+
+import put.poznan.tensorflow.R;
 
 /**
  * Created by SHAJIB on 7/16/2017.

@@ -1,4 +1,4 @@
-package put.poznan.tensorflow;
+package put.poznan.tensorflow.service;
 
 import android.Manifest;
 import android.app.Activity;
@@ -12,6 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import java.util.List;
+
+import put.poznan.tensorflow.classifier.TFClassifier;
 
 abstract class ReceiverActivity extends AppCompatActivity {
 

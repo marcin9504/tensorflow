@@ -1,4 +1,4 @@
-package put.poznan.tensorflow;
+package put.poznan.tensorflow.gallery;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
