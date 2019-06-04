@@ -25,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -202,7 +203,13 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                List<ClassifiedImage> allImages = AppDatabase.getDatabase(MainActivity.this.getApplicationContext()).classifiedImageDao().getAllFirstClasses();
+                TFClassifier gClassifier = null;
+                try {
+                    gClassifier = TFClassifier.create(getAssets(), MODEL_PATH, LABEL_PATH);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                List<ClassifiedImage> allImages = AppDatabase.getDatabase(getApplicationContext()).classifiedImageDao().getAllFirstClasses();
 
                 String path;
                 Integer timestamp;
@@ -225,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.d(path, timestamp.toString());
                         Bitmap bitmap = getBitmapFromFilePath(path);
-                        List<TFClassifier.Recognition> results = classifier.recognizeImage(bitmap);
+                        List<TFClassifier.Recognition> results = Objects.requireNonNull(gClassifier).recognizeImage(bitmap);
 
                         List<ClassifiedImage> classifiedImages = new ArrayList<>();
 
@@ -241,12 +248,12 @@ public class MainActivity extends AppCompatActivity {
 
                             classifiedImages.add(classifiedImage);
                         }
-                        AppDatabase.getDatabase(MainActivity.this.getApplicationContext()).classifiedImageDao().insertList(classifiedImages);
+                        AppDatabase.getDatabase(getApplicationContext()).classifiedImageDao().insertList(classifiedImages);
                     } catch (Exception ignored) {
                     }
                 }
                 cursor.close();
-
+                Objects.requireNonNull(gClassifier).close();
             }
         }).start();
     }
